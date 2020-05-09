@@ -1,27 +1,47 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"strconv"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+
+	"github.com/otaviof/imagenie/pkg/imagenie"
+
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{}
+// logLevelFlag flag name.
+const logLevelFlag = "log-level"
 
-func init() {
-	logrus.SetOutput(os.Stdout)
-	logrus.SetLevel(logrus.Level(99))
+// rootCmd primary application cobra command.
+var rootCmd = &cobra.Command{
+	Use:    "imagenie <command>",
+	Short:  "Utility tool to transform container images",
+	PreRun: setLogLevelCmd,
 }
 
-// exit when on error display a final message and error.
-func exit(err error) {
-	fmt.Printf("[ERROR] %s\n", err)
-	os.Exit(1)
+// init instantiate flags.
+func init() {
+	flags := rootCmd.PersistentFlags()
+
+	flags.Int(logLevelFlag, int(log.InfoLevel), "log verbosity level, from -2 to 3")
+
+	if err := viper.BindPFlags(flags); err != nil {
+		panic(err)
+	}
+}
+
+// setLogLevelCmd use LOGLEVEL environment variable, and configure logrus.
+func setLogLevelCmd(cmd *cobra.Command, args []string) {
+	os.Setenv(imagenie.LogLevelEnv, strconv.Itoa(viper.GetInt(logLevelFlag)))
+	imagenie.SetLogLevel()
 }
 
 func main() {
+	imagenie.ReInit()
+
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
