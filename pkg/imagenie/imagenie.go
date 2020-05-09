@@ -18,6 +18,8 @@ type CopyPaths map[string]string
 
 // Copy loop over paths in order to copy it from source-image into destination container.
 func (i *Imagenie) Copy(paths CopyPaths) error {
+	log.Infof("Entries to copy '%d'", len(paths))
+
 	// mounting source container manager
 	err := i.sourceMgr.Mount()
 	if err != nil {

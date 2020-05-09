@@ -14,7 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Manager represents the container-manager, using buildah in the background.
+// Manager buildaah based container manager.
 type Manager struct {
 	fromImage   string           // source container image
 	targetImage string           // target image
@@ -24,6 +24,7 @@ type Manager struct {
 	mountPoint  string           // source container root mount path
 }
 
+// From save container image, therefore subsequent changes can take place.
 func (m *Manager) From() error {
 	return m.b.Save()
 }
@@ -59,10 +60,12 @@ func (m *Manager) Add(src, dst string) error {
 	return m.b.Save()
 }
 
+// SetLabel set container label.
 func (m *Manager) SetLabel(k, v string) {
 	m.b.SetLabel(k, v)
 }
 
+// Labels return a map with container labels.
 func (m *Manager) Labels() map[string]string {
 	return m.b.Labels()
 }
@@ -117,11 +120,7 @@ func (m *Manager) bootstrap() error {
 
 // NewManager instantiate and bootstrap manager.
 func NewManager(fromImage, targetImage string) (*Manager, error) {
-	if buildah.InitReexec() {
-		return nil, nil
-	}
-	unshare.MaybeReexecUsingUserNamespace(false)
-
+	ReInit()
 	m := &Manager{fromImage: fromImage, targetImage: targetImage, ctx: context.TODO()}
 	return m, m.bootstrap()
 }
