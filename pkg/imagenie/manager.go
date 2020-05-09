@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/containers/buildah"
+	"github.com/containers/buildah/imagebuildah"
 	is "github.com/containers/image/v5/storage"
 	"github.com/containers/image/v5/types"
 	"github.com/containers/storage"
@@ -23,6 +24,8 @@ type Manager struct {
 	b           *buildah.Builder // builder instance
 	mountPoint  string           // source container root mount path
 }
+
+var systemContext = &types.SystemContext{}
 
 // From save container image, therefore subsequent changes can take place.
 func (m *Manager) From() error {
@@ -70,6 +73,45 @@ func (m *Manager) Labels() map[string]string {
 	return m.b.Labels()
 }
 
+// SetEntrypoint set informed string slice as entrypoint.
+func (m *Manager) SetEntrypoint(entrypoint []string) {
+	m.b.SetEntrypoint(entrypoint)
+}
+
+// SetCMD set informed string slice as cmd.
+func (m *Manager) SetCMD(cmd []string) {
+	m.b.SetCmd(cmd)
+}
+
+// Run arbitrary commaand on container.
+func (m *Manager) Run(command []string) error {
+	opts := buildah.RunOptions{}
+	return m.b.Run(command, opts)
+}
+
+// Commit execute commit by creating a image out of container in use.
+func (m *Manager) Commit() error {
+	targetRef, err := is.Transport.ParseStoreReference(m.store, m.targetImage)
+	if err != nil {
+		return err
+	}
+
+	opts := buildah.CommitOptions{
+		Squash:        true,
+		SystemContext: systemContext,
+		Compression:   imagebuildah.Gzip,
+	}
+	id, ref, _, err := m.b.Commit(m.ctx, targetRef, opts)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Image-id: '%s'", id)
+	log.Infof("Name: '%s'", ref.Name())
+	log.Infof("Digest: '%s'", ref.Digest().String())
+	return nil
+}
+
 // Delete delete current container.
 func (m *Manager) Delete() error {
 	return m.b.Delete()
@@ -77,11 +119,11 @@ func (m *Manager) Delete() error {
 
 // getStore get a storage.Store instance.
 func getStore() (storage.Store, error) {
-	storeOpts, err := storage.DefaultStoreOptions(unshare.IsRootless(), unshare.GetRootlessUID())
+	opts, err := storage.DefaultStoreOptions(unshare.IsRootless(), unshare.GetRootlessUID())
 	if err != nil {
 		return nil, err
 	}
-	store, err := storage.GetStore(storeOpts)
+	store, err := storage.GetStore(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -98,23 +140,24 @@ func (m *Manager) builderOptions() buildah.BuilderOptions {
 	return buildah.BuilderOptions{
 		CommonBuildOpts:  opts,
 		ConfigureNetwork: buildah.NetworkDefault,
+		Format:           buildah.OCIv1ImageManifest,
 		FromImage:        m.fromImage,
 		Isolation:        buildah.IsolationChroot,
 		ReportWriter:     os.Stderr,
-		SystemContext:    &types.SystemContext{},
+		SystemContext:    systemContext,
 	}
 }
 
 // bootstrap instantiate builder with options.
 func (m *Manager) bootstrap() error {
-	store, err := getStore()
-	if err != nil {
+	var err error
+	if m.store, err = getStore(); err != nil {
 		return err
 	}
 
 	log.Debugf("Instantiating buildah.Builder with '%s' base image", m.fromImage)
 	opts := m.builderOptions()
-	m.b, err = buildah.NewBuilder(m.ctx, store, opts)
+	m.b, err = buildah.NewBuilder(m.ctx, m.store, opts)
 	return err
 }
 

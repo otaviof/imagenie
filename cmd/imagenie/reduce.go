@@ -10,11 +10,18 @@ import (
 )
 
 const (
+	// cmdFlag cmd flag name.
+	cmdFlag = "cmd"
 	// copyFlag copy flag name.
 	copyFlag = "copy"
-	// pathSeparator copy flag separator
-	pathSeparator = ":"
+	// entrypointFlag entrypoint flag name.
+	entrypointFlag = "entrypoint"
+	// runFlag run flag name.
+	runFlag = "run"
 )
+
+// pathSeparator copy flag separator
+const pathSeparator = ":"
 
 // reduceCmd cobra command definition.
 var reduceCmd = &cobra.Command{
@@ -49,7 +56,10 @@ Examples:
 func init() {
 	flags := reduceCmd.PersistentFlags()
 
+	flags.StringSlice(entrypointFlag, []string{}, "overwrite target-image 'entrypoint'")
+	flags.StringSlice(cmdFlag, []string{}, "overwrite target-image 'cmd'")
 	flags.StringSlice(copyFlag, []string{}, "copy data source-image '<source>:<destination>'")
+	flags.StringSlice(runFlag, []string{}, "run arbitrary command on target-image")
 
 	if err := viper.BindPFlags(flags); err != nil {
 		panic(err)
@@ -103,5 +113,18 @@ func runReduceCmd(cmd *cobra.Command, args []string) error {
 
 	i.Labels()
 
-	return nil
+	if entrypoint := viper.GetStringSlice(entrypointFlag); len(entrypoint) > 0 {
+		i.TargetMgr.SetEntrypoint(entrypoint)
+	}
+	if cmd := viper.GetStringSlice(cmdFlag); len(cmd) > 0 {
+		i.TargetMgr.SetCMD(cmd)
+	}
+	if runCommands := viper.GetStringSlice(runFlag); len(runCommands) > 0 {
+		i.RunAll(runCommands)
+	}
+
+	if err = i.TargetMgr.Commit(); err != nil {
+		return err
+	}
+	return i.CleanUp()
 }

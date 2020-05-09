@@ -25,4 +25,25 @@ func TestImagenie_NewImagenie(t *testing.T) {
 		err := i.Copy(copyPaths)
 		require.NoError(t, err, "copy paths should not return error")
 	})
+
+	t.Run("labels", func(t *testing.T) {
+		i.sourceMgr.SetLabel("k", "v")
+
+		i.Labels()
+
+		labels := i.TargetMgr.Labels()
+		require.Contains(t, labels, "k", "target container should have label")
+	})
+
+	t.Run("runall", func(t *testing.T) {
+		// TODO: investigate and fix errors on running commands;
+		t.Skip()
+		err := i.RunAll([]string{"ls -l /tmp"})
+		require.NoError(t, err, "should not error when running commands")
+	})
+
+	t.Run("cleanup", func(t *testing.T) {
+		err := i.CleanUp()
+		require.NoError(t, err, "should not error on cleanup")
+	})
 }

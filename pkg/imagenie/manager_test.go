@@ -5,19 +5,31 @@ import (
 	"path"
 	"testing"
 
+	is "github.com/containers/image/v5/storage"
 	"github.com/stretchr/testify/require"
+)
 
-	"github.com/sirupsen/logrus"
+const (
+	fromImage   = "alpine:latest"
+	targetImage = "alpine-test:latest"
 )
 
 func init() {
-	logrus.SetOutput(os.Stdout)
-	logrus.SetLevel(logrus.Level(99))
+	os.Setenv(LogLevelEnv, "99")
+	SetLogLevel()
+}
+
+func Test(t *testing.T) {
+	store, err := getStore()
+	t.Logf("err: '%#v'", err)
+
+	imageRef, err := is.Transport.ParseStoreReference(store, targetImage)
+	t.Logf("image-ref: '%#v'", imageRef)
+	t.Logf("err: '%#v'", err)
 }
 
 func TestManager_NewManager(t *testing.T) {
-	fromImage := "alpine:latest"
-	m, err := NewManager(fromImage, "imagenie-test:unit")
+	m, err := NewManager(fromImage, targetImage)
 	require.NoError(t, err, "new manager should not error")
 	require.NotNil(t, m, "manager instance should not be nil")
 
@@ -48,6 +60,11 @@ func TestManager_NewManager(t *testing.T) {
 		t.Logf("Copying over '%s' file", filePath)
 		err = m.Add(filePath, "/tmp")
 		require.NoError(t, err, "should not error on copying file")
+	})
+
+	t.Run("commit", func(t *testing.T) {
+		err := m.Commit()
+		require.NoError(t, err, "should not error on committing")
 	})
 
 	t.Run("unmount", func(t *testing.T) {
