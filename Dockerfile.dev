@@ -1,0 +1,16 @@
+FROM registry.fedoraproject.org/fedora:latest
+
+ENV BUILDAH_ISOLATION="chroot"
+
+COPY hack /src/hack
+
+RUN /src/hack/storage.sh
+ADD etc/containers/containers.conf /etc/containers/containers.conf
+ADD etc/containers/storage.conf /etc/containers/storage.conf
+
+RUN /src/hack/golang.sh && \
+    /src/hack/deps.sh && \
+    /src/hack/build-deps.sh && \
+    /src/hack/yum-clean-up.sh
+
+RUN rm -rf /src
