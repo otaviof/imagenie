@@ -7,6 +7,5 @@ LAYERS_DIR="/var/lib/shared/overlay-layers"
 
 mkdir -p ${IMAGES_DIR} ${LAYERS_DIR}
 
-# TODO: should we keep those lock files?
-# touch ${IMAGES_DIR}/images.lock
-# touch ${LAYERS_DIR}/layers.lock
+touch ${IMAGES_DIR}/images.lock
+touch ${LAYERS_DIR}/layers.lock

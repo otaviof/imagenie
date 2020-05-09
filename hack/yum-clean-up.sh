@@ -5,4 +5,4 @@
 
 set -eu
 
-rm -rfv /var/cache /var/log/dnf* /var/log/yum.*
+rm -rv /var/cache /var/log/dnf* /var/log/yum.* || true
