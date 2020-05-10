@@ -4,8 +4,6 @@
 
 FROM registry.fedoraproject.org/fedora:latest AS builder
 
-ENV BUILDAH_ISOLATION="chroot"
-
 COPY . /src
 WORKDIR /src
 
@@ -27,11 +25,13 @@ RUN /src/hack/storage.sh
 ADD etc/containers/containers.conf /etc/containers/containers.conf
 ADD etc/containers/storage.conf /etc/containers/storage.conf
 
+VOLUME /var/lib/containers/storage
+VOLUME /var/lib/shared
+
 RUN /src/hack/deps.sh && \
-    /src/hack/build-deps.sh && \
     /src/hack/yum-clean-up.sh && \
     rm -rf /src
 
-COPY --from=builder /src/_output/imagenie /usr/loca/bin/imagenie
+COPY --from=builder /src/_output/imagenie /usr/local/bin/imagenie
 
-ENTRYPOINT [ "/usr/loca/bin/imagenie" ]
+ENTRYPOINT [ "/usr/local/bin/imagenie" ]
