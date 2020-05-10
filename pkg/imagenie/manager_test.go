@@ -33,6 +33,11 @@ func TestManager_NewManager(t *testing.T) {
 	require.NoError(t, err, "new manager should not error")
 	require.NotNil(t, m, "manager instance should not be nil")
 
+	t.Run("pull", func(t *testing.T) {
+		err := m.Pull()
+		require.NoError(t, err, "image pull should not error")
+	})
+
 	t.Run("from", func(t *testing.T) {
 		err := m.From()
 		require.NoError(t, err, "from should not error")

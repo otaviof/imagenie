@@ -17,9 +17,12 @@ const logLevelFlag = "log-level"
 
 // rootCmd primary application cobra command.
 var rootCmd = &cobra.Command{
-	Use:    "imagenie <command>",
-	Short:  "Utility tool to transform container images",
-	PreRun: setLogLevelCmd,
+	Use:   "imagenie <command>",
+	Short: "Utility tool to transform container images",
+	Long: `### imagenie
+
+Is a general purpose container image tool, to help composing container build workflows.
+	`,
 }
 
 // init instantiate flags.

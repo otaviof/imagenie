@@ -67,18 +67,6 @@ func init() {
 	rootCmd.AddCommand(reduceCmd)
 }
 
-// getConfig expand arguments into a imagenie.Config instance.
-func getConfig(args []string) (*imagenie.Config, error) {
-	if len(args) != 3 {
-		return nil, fmt.Errorf("not enough arguments %d", len(args))
-	}
-	return &imagenie.Config{
-		FromImage:   args[0],
-		BaseImage:   args[1],
-		TargetImage: args[2],
-	}, nil
-}
-
 // prepareCopyPaths intercept copy parameter to create a imagenie.CopyPaths map.
 func prepareCopyPaths() imagenie.CopyPaths {
 	copySlice := viper.GetStringSlice(copyFlag)
@@ -95,34 +83,54 @@ func prepareCopyPaths() imagenie.CopyPaths {
 	return copyPaths
 }
 
-// runReduceCmd execute command.
-func runReduceCmd(cmd *cobra.Command, args []string) error {
+// getConfig expand arguments into a imagenie.Config instance.
+func getConfig(args []string) (*imagenie.Config, error) {
+	if len(args) != 3 {
+		return nil, fmt.Errorf("not enough arguments %d", len(args))
+	}
+	return &imagenie.Config{
+		FromImage:   args[0],
+		BaseImage:   args[1],
+		TargetImage: args[2],
+	}, nil
+}
+
+// newImagenie instantiate with configuration based on command-line arguments.
+func newImagenie(args []string) (*imagenie.Imagenie, error) {
 	cfg, err := getConfig(args)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	return imagenie.NewImagenie(cfg)
+}
 
-	i, err := imagenie.NewImagenie(cfg)
+// runReduceCmd execute command.
+func runReduceCmd(cmd *cobra.Command, args []string) error {
+	i, err := newImagenie(args)
 	if err != nil {
 		return err
 	}
 
+	// copying data, and copying labels
 	if err = i.Copy(prepareCopyPaths()); err != nil {
 		return err
 	}
-
 	i.Labels()
 
+	// make settings in the image, entrypoint and cmd
 	if entrypoint := viper.GetStringSlice(entrypointFlag); len(entrypoint) > 0 {
 		i.TargetMgr.SetEntrypoint(entrypoint)
 	}
 	if cmd := viper.GetStringSlice(cmdFlag); len(cmd) > 0 {
 		i.TargetMgr.SetCMD(cmd)
 	}
+
+	// run additional commands
 	if runCommands := viper.GetStringSlice(runFlag); len(runCommands) > 0 {
 		i.RunAll(runCommands)
 	}
 
+	// commit target image, clean-up mounts and container
 	if err = i.TargetMgr.Commit(); err != nil {
 		return err
 	}

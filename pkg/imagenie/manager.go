@@ -15,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Manager buildaah based container manager.
+// Manager buildah based container manager.
 type Manager struct {
 	fromImage   string           // source container image
 	targetImage string           // target image
@@ -25,11 +25,28 @@ type Manager struct {
 	mountPoint  string           // source container root mount path
 }
 
+// systemContext global system context instance.
 var systemContext = &types.SystemContext{}
 
 // From save container image, therefore subsequent changes can take place.
 func (m *Manager) From() error {
 	return m.b.Save()
+}
+
+// Pull download image from upstream registry, saving it on local storage.
+func (m *Manager) Pull() error {
+	opts := buildah.PullOptions{
+		MaxRetries:    3,
+		Store:         m.store,
+		SystemContext: systemContext,
+	}
+	log.Infof("Pulling image: '%s'", m.fromImage)
+	image, err := buildah.Pull(m.ctx, m.fromImage, opts)
+	if err != nil {
+		return err
+	}
+	log.Infof("%s image-id '%s'", m.fromImage, image)
+	return nil
 }
 
 // Mount the container and store the mount point path.
