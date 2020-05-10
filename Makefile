@@ -46,11 +46,11 @@ test-unit:
 test-e2e:
 	echo "## TODO: write me! ##"
 
-image:
-	docker build --tag="$(IMAGE_TAG)" .
-
 devcontainer-image:
 	docker build --tag="$(IMAGE_DEV_TAG)" --file="Dockerfile.dev" .
+
+image: devcontainer-image
+	docker build --build-arg="BUILDER_IMAGE=$(IMAGE_DEV_TAG)" --tag="$(IMAGE_TAG)" .
 
 devcontainer-run:
 	docker run \

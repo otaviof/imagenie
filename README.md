@@ -39,7 +39,7 @@ in the following image:
 
 The following parameters are present on `reduce` sub-command.
 
-| Parameter    | Type    | Description |
+| Parameter    | Type    | Description                                                 |
 |--------------|---------|-------------------------------------------------------------|
 | `copy`       | slice   | path to copy from source to target image, as `<src>:<dest>` |
 | `entrypoint` | slice   | entrypoint directive for target-image                       |

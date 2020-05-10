@@ -2,14 +2,11 @@
 # Builder
 #
 
-FROM registry.fedoraproject.org/fedora:latest AS builder
+ARG BUILDER_IMAGE="registry.fedoraproject.org/fedora:latest"
+FROM $BUILDER_IMAGE AS builder
 
 COPY . /src
 WORKDIR /src
-
-RUN /src/hack/golang.sh && \
-    /src/hack/deps.sh && \
-    /src/hack/build-deps.sh
 
 RUN make
 
