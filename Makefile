@@ -55,6 +55,8 @@ devcontainer-image:
 devcontainer-run:
 	docker run \
 		--rm \
+		--interactive \
+		--tty \
 		--privileged \
 		--volume="${PWD}:/src/$(APP)" \
 		--workdir="/src/$(APP)" \
