@@ -80,6 +80,9 @@ make devcontainer-run DEVCONTAINER_ARGS='bash -l'
 For [Visual Studio Code][vscode] users, install [Remote Containers extension][vscodecontainers],
 and re-open the project in the container, which will be using the same `Dockerfile.dev`.
 
+During development, use `make run` to execute the command-line application with `go run`, like for
+instance `make run RUN_ARGS='--help'`.
+
 ### Building
 
 To build the application binary, execute:
@@ -109,6 +112,8 @@ development container, via:
 make devcontainer-image
 make devcontainer-run DEVCONTAINER_ARGS='make test'
 ```
+
+Continuous integration steps can be found at [`.travis.yml`](./.travis.yml) file.
 
 
 [buildahembed]: https://github.com/containers/buildah/blob/master/docs/tutorials/04-include-in-your-build-tool.md
