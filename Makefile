@@ -2,6 +2,7 @@ APP = imagenie
 
 IMAGE = quay.io/otaviof/$(APP)
 IMAGE_TAG = $(IMAGE):latest
+IMAGE_DEV_TAG = $(IMAGE)-dev:latest
 
 OUTPUT_DIR ?= _output
 OUTPUT_BIN = $(OUTPUT_DIR)/$(APP)
@@ -11,8 +12,9 @@ GO_TEST_FLAGS ?= -failfast
 UNIT_TEST_TARGET ?= ./cmd/... ./pkg/...
 E2E_TEST_TARGET ?= ./test/e2e/...
 
-TEST_ARGS ?=
+DEVCONTAINER_ARGS ?=
 RUN_ARGS ?=
+TEST_ARGS ?=
 
 default: build
 
@@ -42,7 +44,21 @@ test-unit:
 
 .PHONY: test-e2e
 test-e2e:
-	echo "TODO: write me!"
+	echo "## TODO: write me! ##"
+
+image:
+	docker build --tag="$(IMAGE_TAG)" .
+
+devcontainer-image:
+	docker build --tag="$(IMAGE_DEV_TAG)" --file="Dockerfile.dev" .
+
+devcontainer-run:
+	docker run \
+		--rm \
+		--privileged \
+		--volume="${PWD}:/src/$(APP)" \
+		--workdir="/src/$(APP)" \
+		$(IMAGE_DEV_TAG) $(DEVCONTAINER_ARGS)
 
 devcontainer-exec:
 	@docker exec --interactive --tty --workdir="/workspaces/$(APP)" $(APP) bash

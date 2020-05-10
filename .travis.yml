@@ -1,0 +1,11 @@
+---
+language: go
+go:
+  - 1.14.x
+services:
+  - docker
+install:
+  - make vendor
+  - make devcontainer-image
+script:
+  - make devcontainer-run DEVCONTAINER_ARGS='make build test'
