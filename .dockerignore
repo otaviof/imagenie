@@ -1,7 +1,8 @@
+_output/
 .env
 .git/
 .gitignore
 .travis.yml
 .vscode/
-_output/
+assets/
 README.md
