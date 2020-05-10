@@ -11,6 +11,7 @@ ADD etc/containers/storage.conf /etc/containers/storage.conf
 RUN /src/hack/golang.sh && \
     /src/hack/deps.sh && \
     /src/hack/build-deps.sh && \
+    yum install -y buildah --exclude=selinux-policy && \
     /src/hack/yum-clean-up.sh
 
 RUN rm -rf /src

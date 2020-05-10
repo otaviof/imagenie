@@ -15,5 +15,3 @@ yum install -y \
     libassuan-devel \
     libseccomp-devel \
     make
-
-yum install -y buildah --exclude=selinux-policy
