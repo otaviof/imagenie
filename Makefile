@@ -49,8 +49,8 @@ test-e2e:
 devcontainer-image:
 	docker build --tag="$(IMAGE_DEV_TAG)" --file="Dockerfile.dev" .
 
-image: devcontainer-image
-	docker build --build-arg="BUILDER_IMAGE=$(IMAGE_DEV_TAG)" --tag="$(IMAGE_TAG)" .
+image:
+	docker build --tag="$(IMAGE_TAG)" .
 
 devcontainer-run:
 	docker run \
