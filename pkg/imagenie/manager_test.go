@@ -1,8 +1,10 @@
 package imagenie
 
 import (
+	"fmt"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	is "github.com/containers/image/v5/storage"
@@ -26,6 +28,14 @@ func Test(t *testing.T) {
 	imageRef, err := is.Transport.ParseStoreReference(store, targetImage)
 	t.Logf("image-ref: '%#v'", imageRef)
 	t.Logf("err: '%#v'", err)
+}
+
+func TestManager_ensureTargetImageTransport(t *testing.T) {
+	m := Manager{targetImage: targetImage}
+	imageWithTransport := m.ensureTargetImageTransport()
+	prefix := fmt.Sprintf("%s%s", defaultTransport, transportSeparator)
+	require.True(t, strings.HasPrefix(imageWithTransport, prefix),
+		"target container image should have default transport")
 }
 
 func TestManager_NewManager(t *testing.T) {
