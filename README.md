@@ -28,6 +28,17 @@ Pull upstream container image into local storage. Example:
 imagenie pull alpine:latest
 ```
 
+### `push`
+
+Push image to container registry, for example:
+
+```sh
+imagenie pull alpine:latest
+```
+
+Image also may contain the transport mechanism, adding for instance `docker://` to the image
+argument. Additionally, multiple images can be specified.
+
 ### `reduce`
 
 Compose a new container image (`target-image`), based on `base-image` and `source-image`. Represented
@@ -45,6 +56,7 @@ The following parameters are present on `reduce` sub-command.
 | `entrypoint` | slice   | entrypoint directive for target-image                       |
 | `cmd`        | slice   | command (cmd) directive for target-image                    |
 | `run`        | slice   | command to run in target-image                              |
+| `push`       | bool    | push target-image to container registry                     |
 
 All `slice` typed parameters can be specified several times, and will be accumulated.
 
