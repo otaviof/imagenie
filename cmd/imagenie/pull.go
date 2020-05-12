@@ -8,12 +8,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-// pullCmd cobra pull sub-command declaration.
+// pullCmd cobra definition for pull sub-command
 var pullCmd = &cobra.Command{
-	Use:    "pull <image>",
-	Short:  "Pull a upstream container image from registry.",
-	PreRun: setLogLevelCmd,
-	RunE:   runPullCmd,
+	Use:          "pull <image> [image]",
+	Short:        "Pull a upstream container image from registry.",
+	PreRun:       setLogLevelCmd,
+	RunE:         runPullCmd,
+	SilenceUsage: true,
 	Long: `### imagenie pull
 
 Download a container image from upstream registry to local storage.
