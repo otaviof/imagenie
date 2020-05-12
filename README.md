@@ -103,7 +103,7 @@ To build the application binary, execute:
 make
 ```
 
-In order to build the application conatiner image, run:
+In order to build the application container image, run:
 
 ```sh
 make image
