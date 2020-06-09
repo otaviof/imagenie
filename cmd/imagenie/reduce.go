@@ -16,6 +16,8 @@ const (
 	copyFlag = "copy"
 	// entrypointFlag entrypoint flag name.
 	entrypointFlag = "entrypoint"
+	// pushFlag push flag name
+	pushFlag = "push"
 	// runFlag run flag name.
 	runFlag = "run"
 )
@@ -60,6 +62,7 @@ func init() {
 	flags.StringSlice(cmdFlag, []string{}, "overwrite target-image 'cmd'")
 	flags.StringSlice(copyFlag, []string{}, "copy data source-image '<source>:<destination>'")
 	flags.StringSlice(runFlag, []string{}, "run arbitrary command on target-image")
+	flags.Bool(pushFlag, false, "push target image to registry")
 
 	if err := viper.BindPFlags(flags); err != nil {
 		panic(err)
@@ -125,7 +128,7 @@ func runReduceCmd(cmd *cobra.Command, args []string) error {
 		i.TargetMgr.SetCMD(cmd)
 	}
 
-	// run additional commands
+	// run additional commands on target image
 	if runCommands := viper.GetStringSlice(runFlag); len(runCommands) > 0 {
 		i.RunAll(runCommands)
 	}
@@ -134,5 +137,14 @@ func runReduceCmd(cmd *cobra.Command, args []string) error {
 	if err = i.TargetMgr.Commit(); err != nil {
 		return err
 	}
+
+	// uploading target container image
+	if viper.GetBool(pushFlag) {
+		if err = i.TargetMgr.Push(); err != nil {
+			return err
+		}
+	}
+
+	// final clean up, unmount and remove working containers
 	return i.CleanUp()
 }

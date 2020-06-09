@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/containers/buildah"
 	"github.com/containers/buildah/imagebuildah"
 	is "github.com/containers/image/v5/storage"
+	"github.com/containers/image/v5/transports"
+	"github.com/containers/image/v5/transports/alltransports"
 	"github.com/containers/image/v5/types"
 	"github.com/containers/storage"
 	"github.com/containers/storage/pkg/unshare"
@@ -24,6 +27,15 @@ type Manager struct {
 	b           *buildah.Builder // builder instance
 	mountPoint  string           // source container root mount path
 }
+
+const (
+	// imageTagSeparator splits image-url and tag.
+	imageTagSeparator = ":"
+	// defaultTransport default transport mechanism.
+	defaultTransport = "docker"
+	// transportSeparator splits image and transport
+	transportSeparator = "://"
+)
 
 // systemContext global system context instance.
 var systemContext = &types.SystemContext{}
@@ -45,7 +57,45 @@ func (m *Manager) Pull() error {
 	if err != nil {
 		return err
 	}
-	log.Infof("%s image-id '%s'", m.fromImage, image)
+	log.Infof("%s, image-id: '%s'", m.fromImage, image)
+	return nil
+}
+
+// ensureTargetImageTransport make sure target image has transport specified.
+func (m *Manager) ensureTargetImageTransport() string {
+	imageURL := strings.Split(m.targetImage, imageTagSeparator)[0]
+	if transport := transports.Get(imageURL); transport != nil {
+		return m.targetImage
+	}
+
+	if strings.Contains(m.targetImage, transportSeparator) {
+		return m.targetImage
+	}
+	return fmt.Sprintf("%s%s%s", defaultTransport, transportSeparator, m.targetImage)
+}
+
+// Push execute push of target image.
+func (m *Manager) Push() error {
+	targetImage := m.ensureTargetImageTransport()
+	targetRef, err := alltransports.ParseImageName(targetImage)
+	if err != nil {
+		return err
+	}
+
+	opts := buildah.PushOptions{
+		Compression:   imagebuildah.Gzip,
+		ReportWriter:  os.Stderr,
+		Store:         m.store,
+		SystemContext: systemContext,
+	}
+
+	log.Infof("Pushing image: '%s'", targetImage)
+	ref, _, err := buildah.Push(m.ctx, m.targetImage, targetRef, opts)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("%s, digest: '%s'", ref.String(), ref.Digest().String())
 	return nil
 }
 
