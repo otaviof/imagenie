@@ -33,7 +33,7 @@ imagenie pull alpine:latest
 Push image to container registry, for example:
 
 ```sh
-imagenie pull alpine:latest
+imagenie push alpine:latest
 ```
 
 Image also may contain the transport mechanism, adding for instance `docker://` to the image
